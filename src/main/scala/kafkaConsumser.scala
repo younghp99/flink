@@ -47,7 +47,7 @@ object kafkaConsumser {
     tranAmt.print()
     //wordCount.print().setParallelism(2)
     //计算平均交易金额
-    val avgAmt=stream.map(x=>(x.split(",")(0),x.split(",")(1).toInt)).keyBy(_._1).sum()
+    val avgAmt=stream.map(x=>(x.split(",")(0),x.split(",")(1).toInt)).keyBy(_._1)
     env.execute("kafka_flink")
 
 
