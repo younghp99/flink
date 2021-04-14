@@ -37,19 +37,17 @@ object kafkaConsumser {
     val consumer = new FlinkKafkaConsumer[String](TOPIC_NAME, new SimpleStringSchema(), kafkaProps)
     //consumer.setStartFromLatest()
     val stream=env.addSource(consumer)
+    //计算次数
     val wordCount=stream.flatMap(_.split(" ")).filter(_.nonEmpty).map((_,1)).keyBy(_._1).sum(1)
-    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt))
-    val rsltStr1=tranAmt.filter(_._2>50)
-    val rsltStr2=tranAmt.filter(_._2<=50)
-    val aa =tranAmt.map(value=>{
-      if(value._2>50){(value)}
-      else{}
+    //根据交易金额分群
+    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt)).map(value=>{
+      if(value._2>50){(value._1,value._2,"Good")}
+      else{(value._1,value._2,"Bad")}
     })
-    //stream.print()
-    //rsltStr1.print("111")
-    //rsltStr2.print("222")
-    aa.print("333")
+    tranAmt.print()
     //wordCount.print().setParallelism(2)
+    //计算平均交易金额
+    val avgAmt=stream.map(x=>(x.split(",")(0),x.split(",")(1).toInt)).keyBy(_._1).sum()
     env.execute("kafka_flink")
 
 
