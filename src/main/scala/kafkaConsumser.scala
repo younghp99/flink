@@ -35,19 +35,27 @@ object kafkaConsumser {
     val MaxOutOfOrderness = 86400 * 1000L
     // 消费kafka数据
     val consumer = new FlinkKafkaConsumer[String](TOPIC_NAME, new SimpleStringSchema(), kafkaProps)
-    //consumer.setStartFromLatest()
+    consumer.setStartFromLatest()
     val stream=env.addSource(consumer)
-    //计算次数
+    //次数
     val wordCount=stream.flatMap(_.split(" ")).filter(_.nonEmpty).map((_,1)).keyBy(_._1).sum(1)
-    //根据交易金额分群
-    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt)).map(value=>{
+
+    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt))
+    //客群分类
+    val isGood=tranAmt.map(value=>{
       if(value._2>50){(value._1,value._2,"Good")}
       else{(value._1,value._2,"Bad")}
     })
-    tranAmt.print()
+    //isGood.print("333")
+    //交易总金额
+    val totalAmt=tranAmt.keyBy(_._1).sum(1)
+    totalAmt.print("444")
     //wordCount.print().setParallelism(2)
-    //计算平均交易金额
-    val avgAmt=stream.map(x=>(x.split(",")(0),x.split(",")(1).toInt)).keyBy(_._1)
+    //平均交易金额
+    val avgAmt=tranAmt.keyBy(_._1).sum(1).map(x=>{
+      (x._1,x._2,1)
+    }).keyBy(_._1).sum(1)//.keyBy(_._1).sum(2)
+    avgAmt.print("555")
     env.execute("kafka_flink")
 
 
