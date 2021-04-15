@@ -1,8 +1,6 @@
 import java.util.Properties
-import org.apache.flink.cep.PatternSelectFunction
-import org.apache.flink.cep.scala.{CEP, PatternStream}
-import org.apache.flink.cep.scala.pattern.Pattern
 import com.alibaba.fastjson.JSON
+import org.apache.flink.api.java.aggregation.Aggregations
 import org.apache.flink.runtime.state.filesystem.FsStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
@@ -40,7 +38,7 @@ object kafkaConsumser {
     //次数
     val wordCount=stream.flatMap(_.split(" ")).filter(_.nonEmpty).map((_,1)).keyBy(_._1).sum(1)
 
-    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt))
+    val tranAmt=stream.map(x=>(x.split(',')(0),x.split(',')(1).toInt,1))
     //客群分类
     val isGood=tranAmt.map(value=>{
       if(value._2>50){(value._1,value._2,"Good")}
@@ -49,15 +47,17 @@ object kafkaConsumser {
     //isGood.print("333")
     //交易总金额
     val totalAmt=tranAmt.keyBy(_._1).sum(1)
-    totalAmt.print("444")
+    //totalAmt.print("444")
     //wordCount.print().setParallelism(2)
     //平均交易金额
-    val avgAmt=tranAmt.keyBy(_._1).sum(1).map(x=>{
-      (x._1,x._2,1)
-    }).keyBy(_._1).sum(1)//.keyBy(_._1).sum(2)
+    val avgAmt=tranAmt.map(x => {
+      (x._1, x._2, 1)
+    }).keyBy(_._1).sum(1)
+    val totalCnt=tranAmt.map(x=>(x._1,x._2,x._3)).keyBy(1).sum(2)
     avgAmt.print("555")
+    totalCnt.print("555")
+    val avg=totalAmt.join(avgAmt).where({_._1}).equalTo({_._1})
     env.execute("kafka_flink")
-
 
   }
 
