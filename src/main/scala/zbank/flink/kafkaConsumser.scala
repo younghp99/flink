@@ -1,19 +1,15 @@
+package zbank.flink
+
 import java.util.Properties
-import com.alibaba.fastjson.JSON
-import org.apache.flink.api.java.aggregation.Aggregations
+
 import org.apache.flink.runtime.state.filesystem.FsStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.ContinuousProcessingTimeTrigger
-import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer}
+import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
-import org.apache.flink.streaming.api.scala.extensions._
-import org.apache.flink.api.scala._
+
 object kafkaConsumser {
   def main(args: Array[String]) {
-    println("开始消费kafka：")
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.enableCheckpointing(5000)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
@@ -31,6 +27,8 @@ object kafkaConsumser {
     kafkaProps.setProperty("group.id", TRANSACTION_GROUP)
     // watrmark 允许数据延迟时间
     val MaxOutOfOrderness = 86400 * 1000L
+
+    case class rsltData(user:String,tranamt:Int)
     // 消费kafka数据
     val consumer = new FlinkKafkaConsumer[String](TOPIC_NAME, new SimpleStringSchema(), kafkaProps)
     consumer.setStartFromLatest()
@@ -55,10 +53,8 @@ object kafkaConsumser {
     }).keyBy(_._1).sum(1)
     val totalCnt=tranAmt.map(x=>(x._1,x._2,x._3)).keyBy(1).sum(2)
     avgAmt.print("555")
-    totalCnt.print("555")
-    val avg=totalAmt.join(avgAmt).where({_._1}).equalTo({_._1})
+    totalCnt.print("666")
+    println("开始消费kafka：")
     env.execute("kafka_flink")
-
   }
-
 }
