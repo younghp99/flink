@@ -11,8 +11,8 @@ zkServer
 2、kafka
 E:\modules\kafka_2.11-2.3.0
 启动：
-.\bin\windows\kafka-server-start.bat .\config\server.properties
-
+.\bin\windows\kafka-server-start.bat E:\modules\kafka_2.11-2.3.0\config\server.properties
+E:\modules\kafka_2.11-2.3.0\bin\windows\kafka-server-start.bat
 
 
 新建topic：
@@ -29,6 +29,8 @@ kafka-console-producer.bat --broker-list localhost:9092 --topic right
 创建消费者：
 cd E:\modules\kafka_2.11-2.3.0\bin\windows
 kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic haha --from-beginning
+kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic left --from-beginning
+kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic right --from-beginning
 
 查看topic：
 cd E:\modules\kafka_2.11-2.3.0\bin\windows

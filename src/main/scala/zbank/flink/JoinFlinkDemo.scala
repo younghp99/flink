@@ -41,9 +41,11 @@ object JoinFlinkDemo {
     rconsumer.setStartFromLatest()
     val rstream=env.addSource(rconsumer)
     //处理left流数据
+    print("开始处理kafka数据：")
     val ldata=lstream.map(x=>{(x,1)})
     val rdata=rstream.map(x=>{(x,1)})
-
-
+    ldata.print()
+    rdata.print()
+    env.execute("kafkajoin")
   }
 }
